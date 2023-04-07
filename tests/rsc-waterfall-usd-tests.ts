@@ -42,9 +42,7 @@ async function deployRSCWaterfallUsdContract(
   const rscWaterfallContractAddress = receipt.events?.[5].args?.[0];
 
   const RSCWaterfall = await ethers.getContractFactory("RSCWaterfallUsd");
-  const rscWaterfall = await RSCWaterfall.attach(
-    rscWaterfallContractAddress
-  );
+  const rscWaterfall = await RSCWaterfall.attach(rscWaterfallContractAddress);
   return rscWaterfall;
 }
 
@@ -91,15 +89,11 @@ describe("RSC Waterfall USD tests", function () {
     expect(await rscWaterfallUsd.owner()).to.be.equal(owner.address);
     expect(await rscWaterfallUsd.distributors(owner.address)).to.be.true;
     expect(await rscWaterfallUsd.controller()).to.be.equal(owner.address);
-    expect(await rscWaterfallUsd.numberOfRecipients()).to.be.equal(
-      BigInt(1)
-    );
+    expect(await rscWaterfallUsd.numberOfRecipients()).to.be.equal(BigInt(1));
     expect(await rscWaterfallUsd.platformFee()).to.be.equal(0);
 
     // Recipients settings
-    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(
-      addr2.address
-    );
+    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(addr2.address);
     expect(await rscWaterfallUsd.recipients(0)).to.be.equal(addr1.address);
     expect(
       (await rscWaterfallUsd.recipientsData(addr1.address)).maxCap
@@ -136,9 +130,7 @@ describe("RSC Waterfall USD tests", function () {
     );
 
     expect(await rscWaterfallUsd.numberOfRecipients()).to.be.equal(2);
-    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(
-      addr2.address
-    );
+    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(addr2.address);
     expect(await rscWaterfallUsd.recipients(0)).to.be.equal(addr1.address);
     expect(
       (await rscWaterfallUsd.recipientsData(addr1.address)).maxCap
@@ -161,9 +153,7 @@ describe("RSC Waterfall USD tests", function () {
       (await rscWaterfallUsd.recipientsData(addr3.address)).priority
     ).to.be.equal(20);
 
-    await expect(
-      rscWaterfallUsd.recipients(2)
-    ).to.be.revertedWithoutReason();
+    await expect(rscWaterfallUsd.recipients(2)).to.be.revertedWithoutReason();
 
     await expect(
       rscWaterfallUsd.setRecipients(
@@ -205,9 +195,7 @@ describe("RSC Waterfall USD tests", function () {
       addr2BalanceBefore + ethers.utils.parseEther("5").toBigInt()
     ).to.be.equal(addr2BalanceAfterFirstBuy);
 
-    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(
-      addr2.address
-    );
+    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(addr2.address);
 
     expect(
       (await rscWaterfallUsd.recipientsData(addr2.address)).received
@@ -234,9 +222,7 @@ describe("RSC Waterfall USD tests", function () {
       addr2BalanceAfterFirstBuy + ethers.utils.parseEther("5").toBigInt()
     ).to.be.equal(addr2BalanceAfterSecondBuy);
 
-    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(
-      addr1.address
-    );
+    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(addr1.address);
     await expect(rscWaterfallUsd.recipients(0)).to.revertedWithoutReason();
     expect(
       (await rscWaterfallUsd.recipientsData(addr1.address)).received
@@ -257,9 +243,7 @@ describe("RSC Waterfall USD tests", function () {
       await ethers.provider.getBalance(addr2.address)
     ).toBigInt();
 
-    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(
-      addr1.address
-    );
+    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(addr1.address);
     expect(
       (await rscWaterfallUsd.recipientsData(addr1.address)).received
     ).to.be.equal(ethers.utils.parseEther("1000"));
@@ -373,9 +357,7 @@ describe("RSC Waterfall USD tests", function () {
     ).toBigInt();
 
     expect(await rscWaterfallUsd.numberOfRecipients()).to.be.equal(0);
-    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(
-      addr3.address
-    );
+    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(addr3.address);
     expect(
       (await ethers.provider.getBalance(rscWaterfallUsd.address)).toBigInt()
     ).to.be.equal(0);
@@ -413,16 +395,12 @@ describe("RSC Waterfall USD tests", function () {
     );
     await rscWaterfallUsd.redistributeToken(baseToken.address);
 
-    expect(await baseToken.balanceOf(rscWaterfallUsd.address)).to.be.equal(
-      0
-    );
+    expect(await baseToken.balanceOf(rscWaterfallUsd.address)).to.be.equal(0);
     expect(await baseToken.balanceOf(addr1.address)).to.be.equal(0);
     expect(await baseToken.balanceOf(addr2.address)).to.be.equal(
       ethers.utils.parseEther("10")
     );
-    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(
-      addr1.address
-    );
+    expect(await rscWaterfallUsd.currentRecipient()).to.be.equal(addr1.address);
     expect(await rscWaterfallUsd.numberOfRecipients()).to.be.equal(0);
 
     await baseToken.transfer(
@@ -688,9 +666,9 @@ describe("RSC Waterfall USD tests", function () {
     expect(await baseToken.balanceOf(platformWallet)).to.be.equal(
       ethers.utils.parseEther("50")
     );
-    expect(
-      await baseToken.balanceOf(rscFeeWaterfallUsd.address)
-    ).to.be.equal(ethers.utils.parseEther("15"));
+    expect(await baseToken.balanceOf(rscFeeWaterfallUsd.address)).to.be.equal(
+      ethers.utils.parseEther("15")
+    );
     expect(await baseToken.balanceOf(addr1.address)).to.be.equal(
       ethers.utils.parseEther("35")
     );

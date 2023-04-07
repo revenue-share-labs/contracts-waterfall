@@ -41,9 +41,7 @@ async function deployRSCWaterfallContract(
   const rscWaterfallContractAddress = receipt.events?.[5].args?.[0];
 
   const RSCWaterfall = await ethers.getContractFactory("RSCWaterfall");
-  const rscWaterfall = await RSCWaterfall.attach(
-    rscWaterfallContractAddress
-  );
+  const rscWaterfall = await RSCWaterfall.attach(rscWaterfallContractAddress);
   return rscWaterfall;
 }
 
@@ -162,10 +160,7 @@ describe("RSC Waterfall tests", function () {
         [ethers.utils.parseEther("100"), ethers.utils.parseEther("50")],
         [BigInt(30), BigInt(20)]
       )
-    ).to.be.revertedWithCustomError(
-      rscWaterfall,
-      "RecipientAlreadyAddedError"
-    );
+    ).to.be.revertedWithCustomError(rscWaterfall, "RecipientAlreadyAddedError");
   });
 
   it("Should redistribute funds correctly", async () => {
@@ -310,9 +305,9 @@ describe("RSC Waterfall tests", function () {
       await ethers.provider.getBalance(addr3.address)
     ).toBigInt();
 
-    expect(
-      await ethers.provider.getBalance(rscWaterfall.address)
-    ).to.be.equal(0);
+    expect(await ethers.provider.getBalance(rscWaterfall.address)).to.be.equal(
+      0
+    );
     expect(
       addr3BalanceBefore + ethers.utils.parseEther("10").toBigInt()
     ).to.be.equal(addr3BalanceAfter);
