@@ -17,13 +17,13 @@ async function deployRSCWaterfallContract(
   const ethPriceFeedMock = await EthPriceFeedMock.deploy();
   await ethPriceFeedMock.deployed();
 
-  const XLARSCWaterfallFactory = await ethers.getContractFactory(
-    "XLARSCWaterfallFactory"
+  const RSCWaterfallFactory = await ethers.getContractFactory(
+    "RSCWaterfallFactory"
   );
-  const xlaRSCWaterfallFactory = await XLARSCWaterfallFactory.deploy();
-  await xlaRSCWaterfallFactory.deployed();
+  const rscWaterfallFactory = await RSCWaterfallFactory.deploy();
+  await rscWaterfallFactory.deployed();
 
-  const tx = await xlaRSCWaterfallFactory.createRSCWaterfall({
+  const tx = await rscWaterfallFactory.createRSCWaterfall({
     controller: controller,
     distributors: distributors,
     immutableController: immutableController,
@@ -40,15 +40,15 @@ async function deployRSCWaterfallContract(
   let receipt = await tx.wait();
   const rscWaterfallContractAddress = receipt.events?.[5].args?.[0];
 
-  const XLARSCWaterfall = await ethers.getContractFactory("XLARSCWaterfall");
-  const xlaRSCWaterfall = await XLARSCWaterfall.attach(
+  const RSCWaterfall = await ethers.getContractFactory("RSCWaterfall");
+  const rscWaterfall = await RSCWaterfall.attach(
     rscWaterfallContractAddress
   );
-  return xlaRSCWaterfall;
+  return rscWaterfall;
 }
 
-describe("XLA RSC Waterfall tests", function () {
-  let xlaRSCWaterfall: any;
+describe("RSC Waterfall tests", function () {
+  let rscWaterfall: any;
   let baseToken: any;
   let testToken: any;
 
@@ -71,7 +71,7 @@ describe("XLA RSC Waterfall tests", function () {
     testToken = await TestToken.deploy("TestToken", "TTT", 1000000000);
     await testToken.deployed();
 
-    xlaRSCWaterfall = await deployRSCWaterfallContract(
+    rscWaterfall = await deployRSCWaterfallContract(
       owner.address,
       [owner.address],
       false,
@@ -82,88 +82,88 @@ describe("XLA RSC Waterfall tests", function () {
       [BigInt(10), BigInt(20)],
       [baseToken.address]
     );
-    await xlaRSCWaterfall.deployed();
+    await rscWaterfall.deployed();
   });
 
   it("Should set base attrs correctly", async () => {
     // Contract settings
-    expect(await xlaRSCWaterfall.owner()).to.be.equal(owner.address);
-    expect(await xlaRSCWaterfall.distributors(owner.address)).to.be.true;
-    expect(await xlaRSCWaterfall.controller()).to.be.equal(owner.address);
-    expect(await xlaRSCWaterfall.numberOfRecipients()).to.be.equal(BigInt(1));
-    expect(await xlaRSCWaterfall.platformFee()).to.be.equal(0);
+    expect(await rscWaterfall.owner()).to.be.equal(owner.address);
+    expect(await rscWaterfall.distributors(owner.address)).to.be.true;
+    expect(await rscWaterfall.controller()).to.be.equal(owner.address);
+    expect(await rscWaterfall.numberOfRecipients()).to.be.equal(BigInt(1));
+    expect(await rscWaterfall.platformFee()).to.be.equal(0);
 
     // Recipients settings
-    expect(await xlaRSCWaterfall.currentRecipient()).to.be.equal(addr2.address);
-    expect(await xlaRSCWaterfall.recipients(0)).to.be.equal(addr1.address);
+    expect(await rscWaterfall.currentRecipient()).to.be.equal(addr2.address);
+    expect(await rscWaterfall.recipients(0)).to.be.equal(addr1.address);
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr1.address)).maxCap
+      (await rscWaterfall.recipientsData(addr1.address)).maxCap
     ).to.be.equal(ethers.utils.parseEther("100"));
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr1.address)).received
+      (await rscWaterfall.recipientsData(addr1.address)).received
     ).to.be.equal(0);
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr1.address)).priority
+      (await rscWaterfall.recipientsData(addr1.address)).priority
     ).to.be.equal(10);
 
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr2.address)).maxCap
+      (await rscWaterfall.recipientsData(addr2.address)).maxCap
     ).to.be.equal(ethers.utils.parseEther("10"));
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr2.address)).received
+      (await rscWaterfall.recipientsData(addr2.address)).received
     ).to.be.equal(0);
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr2.address)).priority
+      (await rscWaterfall.recipientsData(addr2.address)).priority
     ).to.be.equal(20);
   });
 
   it("Should add recipients correctly", async () => {
     await expect(
-      xlaRSCWaterfall
+      rscWaterfall
         .connect(addr3)
         .setRecipients([addr3.address], [2000], [BigInt(10)])
-    ).to.be.revertedWithCustomError(xlaRSCWaterfall, "OnlyControllerError");
+    ).to.be.revertedWithCustomError(rscWaterfall, "OnlyControllerError");
 
-    await xlaRSCWaterfall.setRecipients(
+    await rscWaterfall.setRecipients(
       [addr1.address, addr3.address],
       [ethers.utils.parseEther("100"), ethers.utils.parseEther("50")],
       [BigInt(30), BigInt(20)]
     );
 
-    expect(await xlaRSCWaterfall.numberOfRecipients()).to.be.equal(BigInt(2));
-    expect(await xlaRSCWaterfall.currentRecipient()).to.be.equal(addr2.address);
-    expect(await xlaRSCWaterfall.recipients(0)).to.be.equal(addr1.address);
+    expect(await rscWaterfall.numberOfRecipients()).to.be.equal(BigInt(2));
+    expect(await rscWaterfall.currentRecipient()).to.be.equal(addr2.address);
+    expect(await rscWaterfall.recipients(0)).to.be.equal(addr1.address);
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr1.address)).maxCap
+      (await rscWaterfall.recipientsData(addr1.address)).maxCap
     ).to.be.equal(ethers.utils.parseEther("100"));
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr1.address)).received
+      (await rscWaterfall.recipientsData(addr1.address)).received
     ).to.be.equal(0);
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr1.address)).priority
+      (await rscWaterfall.recipientsData(addr1.address)).priority
     ).to.be.equal(30);
 
-    expect(await xlaRSCWaterfall.recipients(1)).to.be.equal(addr3.address);
+    expect(await rscWaterfall.recipients(1)).to.be.equal(addr3.address);
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr3.address)).maxCap
+      (await rscWaterfall.recipientsData(addr3.address)).maxCap
     ).to.be.equal(ethers.utils.parseEther("50"));
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr3.address)).received
+      (await rscWaterfall.recipientsData(addr3.address)).received
     ).to.be.equal(0);
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr3.address)).priority
+      (await rscWaterfall.recipientsData(addr3.address)).priority
     ).to.be.equal(20);
 
-    await expect(xlaRSCWaterfall.recipients(2)).to.be.revertedWithoutReason();
+    await expect(rscWaterfall.recipients(2)).to.be.revertedWithoutReason();
 
     await expect(
-      xlaRSCWaterfall.setRecipients(
+      rscWaterfall.setRecipients(
         [addr1.address, addr1.address],
         [ethers.utils.parseEther("100"), ethers.utils.parseEther("50")],
         [BigInt(30), BigInt(20)]
       )
     ).to.be.revertedWithCustomError(
-      xlaRSCWaterfall,
+      rscWaterfall,
       "RecipientAlreadyAddedError"
     );
   });
@@ -180,7 +180,7 @@ describe("XLA RSC Waterfall tests", function () {
     ).toBigInt();
 
     const txHashFirstBuy = await owner.sendTransaction({
-      to: xlaRSCWaterfall.address,
+      to: rscWaterfall.address,
       value: ethers.utils.parseEther("5"),
     });
 
@@ -196,17 +196,17 @@ describe("XLA RSC Waterfall tests", function () {
       addr2BalanceBefore + ethers.utils.parseEther("5").toBigInt()
     ).to.be.equal(addr2BalanceAfterFirstBuy);
 
-    expect(await xlaRSCWaterfall.currentRecipient()).to.be.equal(addr2.address);
+    expect(await rscWaterfall.currentRecipient()).to.be.equal(addr2.address);
 
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr2.address)).received
+      (await rscWaterfall.recipientsData(addr2.address)).received
     ).to.be.equal(ethers.utils.parseEther("5"));
 
     // Second Buy
     // Send rest of max cap to addr2, should switch currentRecipient to addr1
 
     const txHashSecondBuy = await owner.sendTransaction({
-      to: xlaRSCWaterfall.address,
+      to: rscWaterfall.address,
       value: ethers.utils.parseEther("5"),
     });
 
@@ -223,17 +223,17 @@ describe("XLA RSC Waterfall tests", function () {
       addr2BalanceAfterFirstBuy + ethers.utils.parseEther("5").toBigInt()
     ).to.be.equal(addr2BalanceAfterSecondBuy);
 
-    expect(await xlaRSCWaterfall.currentRecipient()).to.be.equal(addr1.address);
-    await expect(xlaRSCWaterfall.recipients(0)).to.revertedWithoutReason();
+    expect(await rscWaterfall.currentRecipient()).to.be.equal(addr1.address);
+    await expect(rscWaterfall.recipients(0)).to.revertedWithoutReason();
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr1.address)).received
+      (await rscWaterfall.recipientsData(addr1.address)).received
     ).to.be.equal(0);
 
     // "third Buy"
     // send 1/99 to addr1, should stay as current recipient
 
     const txHashThirdBuy = await owner.sendTransaction({
-      to: xlaRSCWaterfall.address,
+      to: rscWaterfall.address,
       value: ethers.utils.parseEther("1"),
     });
 
@@ -244,9 +244,9 @@ describe("XLA RSC Waterfall tests", function () {
       await ethers.provider.getBalance(addr2.address)
     ).toBigInt();
 
-    expect(await xlaRSCWaterfall.currentRecipient()).to.be.equal(addr1.address);
+    expect(await rscWaterfall.currentRecipient()).to.be.equal(addr1.address);
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr1.address)).received
+      (await rscWaterfall.recipientsData(addr1.address)).received
     ).to.be.equal(ethers.utils.parseEther("1"));
 
     // Fourth buy
@@ -254,7 +254,7 @@ describe("XLA RSC Waterfall tests", function () {
     // contract should have balance of 1
 
     const txHashFourthBuy = await owner.sendTransaction({
-      to: xlaRSCWaterfall.address,
+      to: rscWaterfall.address,
       value: ethers.utils.parseEther("100"),
     });
 
@@ -265,25 +265,25 @@ describe("XLA RSC Waterfall tests", function () {
       await ethers.provider.getBalance(addr2.address)
     ).toBigInt();
     const rscContractBalance = (
-      await ethers.provider.getBalance(xlaRSCWaterfall.address)
+      await ethers.provider.getBalance(rscWaterfall.address)
     ).toBigInt();
 
     expect(rscContractBalance).to.be.equal(ethers.utils.parseEther("1"));
-    expect(await xlaRSCWaterfall.currentRecipient()).to.be.equal(
+    expect(await rscWaterfall.currentRecipient()).to.be.equal(
       constants.ZERO_ADDRESS
     );
-    await expect(xlaRSCWaterfall.recipients(0)).to.revertedWithoutReason();
+    await expect(rscWaterfall.recipients(0)).to.revertedWithoutReason();
 
     // Fifth buy
     // Send 4 Eth to RSC, because there is no currentRecipient all eth will be send to contract
 
     const txHashFifthBuy = await owner.sendTransaction({
-      to: xlaRSCWaterfall.address,
+      to: rscWaterfall.address,
       value: ethers.utils.parseEther("4"),
     });
 
     const rscContractBalanceEmptyBuy = (
-      await ethers.provider.getBalance(xlaRSCWaterfall.address)
+      await ethers.provider.getBalance(rscWaterfall.address)
     ).toBigInt();
     expect(rscContractBalanceEmptyBuy).to.be.equal(
       ethers.utils.parseEther("5")
@@ -291,7 +291,7 @@ describe("XLA RSC Waterfall tests", function () {
 
     // Sixth buy
     // Set new recipients and currentRecipient (addr3) should receive 5 eth from RSC contract
-    await xlaRSCWaterfall.setRecipients(
+    await rscWaterfall.setRecipients(
       [addr3.address],
       [ethers.utils.parseEther("10")],
       [BigInt(10)]
@@ -302,7 +302,7 @@ describe("XLA RSC Waterfall tests", function () {
     ).toBigInt();
 
     const txHashSixthBuy = await owner.sendTransaction({
-      to: xlaRSCWaterfall.address,
+      to: rscWaterfall.address,
       value: ethers.utils.parseEther("5"),
     });
 
@@ -311,18 +311,18 @@ describe("XLA RSC Waterfall tests", function () {
     ).toBigInt();
 
     expect(
-      await ethers.provider.getBalance(xlaRSCWaterfall.address)
+      await ethers.provider.getBalance(rscWaterfall.address)
     ).to.be.equal(0);
     expect(
       addr3BalanceBefore + ethers.utils.parseEther("10").toBigInt()
     ).to.be.equal(addr3BalanceAfter);
-    expect(await xlaRSCWaterfall.currentRecipient()).to.be.equal(
+    expect(await rscWaterfall.currentRecipient()).to.be.equal(
       constants.ZERO_ADDRESS
     );
 
     // Seventh buy
     // Set 3 recipients and 2 of them should be fulfilled in 1 TX
-    await xlaRSCWaterfall.setRecipients(
+    await rscWaterfall.setRecipients(
       [addr1.address, addr2.address, addr3.address],
       [
         ethers.utils.parseEther("10"),
@@ -343,7 +343,7 @@ describe("XLA RSC Waterfall tests", function () {
     ).toBigInt();
 
     const txHashSeventhBuy = await owner.sendTransaction({
-      to: xlaRSCWaterfall.address,
+      to: rscWaterfall.address,
       value: ethers.utils.parseEther("25"),
     });
 
@@ -357,10 +357,10 @@ describe("XLA RSC Waterfall tests", function () {
       await ethers.provider.getBalance(addr3.address)
     ).toBigInt();
 
-    expect(await xlaRSCWaterfall.numberOfRecipients()).to.be.equal(BigInt(0));
-    expect(await xlaRSCWaterfall.currentRecipient()).to.be.equal(addr3.address);
+    expect(await rscWaterfall.numberOfRecipients()).to.be.equal(BigInt(0));
+    expect(await rscWaterfall.currentRecipient()).to.be.equal(addr3.address);
     expect(
-      (await ethers.provider.getBalance(xlaRSCWaterfall.address)).toBigInt()
+      (await ethers.provider.getBalance(rscWaterfall.address)).toBigInt()
     ).to.be.equal(0);
 
     expect(
@@ -374,7 +374,7 @@ describe("XLA RSC Waterfall tests", function () {
     ).to.be.equal(addr3BalanceAfterSeventhdBuy);
 
     expect(
-      (await xlaRSCWaterfall.recipientsData(addr3.address)).received
+      (await rscWaterfall.recipientsData(addr3.address)).received
     ).to.be.equal(ethers.utils.parseEther("5"));
 
     // TODO Test set recipients between buyes
@@ -388,30 +388,30 @@ describe("XLA RSC Waterfall tests", function () {
     await ethPriceFeedMock.deployed();
 
     await baseToken.transfer(
-      xlaRSCWaterfall.address,
+      rscWaterfall.address,
       ethers.utils.parseEther("100000")
     );
 
-    await xlaRSCWaterfall.setTokenNativeTokenPriceFeed(
+    await rscWaterfall.setTokenNativeTokenPriceFeed(
       baseToken.address,
       ethPriceFeedMock.address
     );
-    await xlaRSCWaterfall.redistributeToken(baseToken.address);
+    await rscWaterfall.redistributeToken(baseToken.address);
 
-    expect(await baseToken.balanceOf(xlaRSCWaterfall.address)).to.be.equal(0);
+    expect(await baseToken.balanceOf(rscWaterfall.address)).to.be.equal(0);
     expect(await baseToken.balanceOf(addr1.address)).to.be.equal(0);
     expect(await baseToken.balanceOf(addr2.address)).to.be.equal(
       ethers.utils.parseEther("100000")
     );
-    expect(await xlaRSCWaterfall.currentRecipient()).to.be.equal(addr1.address);
-    expect(await xlaRSCWaterfall.numberOfRecipients()).to.be.equal(BigInt(0));
+    expect(await rscWaterfall.currentRecipient()).to.be.equal(addr1.address);
+    expect(await rscWaterfall.numberOfRecipients()).to.be.equal(BigInt(0));
 
     await baseToken.transfer(
-      xlaRSCWaterfall.address,
+      rscWaterfall.address,
       ethers.utils.parseEther("1050000")
     );
-    await xlaRSCWaterfall.redistributeToken(baseToken.address);
-    expect(await baseToken.balanceOf(xlaRSCWaterfall.address)).to.be.equal(
+    await rscWaterfall.redistributeToken(baseToken.address);
+    expect(await baseToken.balanceOf(rscWaterfall.address)).to.be.equal(
       ethers.utils.parseEther("50000")
     );
     expect(await baseToken.balanceOf(addr1.address)).to.be.equal(
@@ -421,37 +421,37 @@ describe("XLA RSC Waterfall tests", function () {
       ethers.utils.parseEther("100000")
     );
 
-    await xlaRSCWaterfall.setRecipients(
+    await rscWaterfall.setRecipients(
       [addr3.address],
       [ethers.utils.parseEther("10000")],
       [BigInt(10)]
     );
     await testToken.transfer(
-      xlaRSCWaterfall.address,
+      rscWaterfall.address,
       ethers.utils.parseEther("100")
     );
     await expect(
-      xlaRSCWaterfall.redistributeToken(testToken.address)
+      rscWaterfall.redistributeToken(testToken.address)
     ).to.be.revertedWithCustomError(
-      xlaRSCWaterfall,
+      rscWaterfall,
       "TokenMissingNativeTokenPriceOracle"
     );
 
     await expect(
-      xlaRSCWaterfall.connect(addr1).redistributeToken(baseToken.address)
-    ).to.be.revertedWithCustomError(xlaRSCWaterfall, "OnlyDistributorError");
+      rscWaterfall.connect(addr1).redistributeToken(baseToken.address)
+    ).to.be.revertedWithCustomError(rscWaterfall, "OnlyDistributorError");
 
     await expect(
-      xlaRSCWaterfall.connect(addr1).setDistributor(addr3.address, true)
+      rscWaterfall.connect(addr1).setDistributor(addr3.address, true)
     ).to.be.revertedWith("Ownable: caller is not the owner");
 
-    await xlaRSCWaterfall.setDistributor(addr1.address, true);
-    await xlaRSCWaterfall.connect(addr1).redistributeToken(baseToken.address);
+    await rscWaterfall.setDistributor(addr1.address, true);
+    await rscWaterfall.connect(addr1).redistributeToken(baseToken.address);
   });
 
   it("Should initialize only once", async () => {
     await expect(
-      xlaRSCWaterfall.initialize(
+      rscWaterfall.initialize(
         {
           owner: addr2.address,
           controller: addr2.address,
@@ -472,8 +472,8 @@ describe("XLA RSC Waterfall tests", function () {
   });
 
   it("Should transfer ownership correctly", async () => {
-    await xlaRSCWaterfall.transferOwnership(addr1.address);
-    expect(await xlaRSCWaterfall.owner()).to.be.equal(addr1.address);
+    await rscWaterfall.transferOwnership(addr1.address);
+    expect(await rscWaterfall.owner()).to.be.equal(addr1.address);
   });
 
   it("Should deploy and create immutable contract", async () => {
@@ -561,7 +561,7 @@ describe("XLA RSC Waterfall tests", function () {
 
   it("Should work with fees Correctly", async () => {
     const RSCWaterfallFeeFactory = await ethers.getContractFactory(
-      "XLARSCWaterfallFactory"
+      "RSCWaterfallFactory"
     );
     const rscWaterfallFeeFactory = await RSCWaterfallFeeFactory.deploy();
     await rscWaterfallFeeFactory.deployed();
@@ -614,10 +614,10 @@ describe("XLA RSC Waterfall tests", function () {
 
     let receipt = await txFee.wait();
     const revenueShareContractAddress = receipt.events?.[5].args?.[0];
-    const XLARevenueShareContract = await ethers.getContractFactory(
-      "XLARSCWaterfall"
+    const RevenueShareContract = await ethers.getContractFactory(
+      "RSCWaterfall"
     );
-    const xlaRSCFeeWaterfall = await XLARevenueShareContract.attach(
+    const rscFeeWaterfall = await RevenueShareContract.attach(
       revenueShareContractAddress
     );
 
@@ -632,7 +632,7 @@ describe("XLA RSC Waterfall tests", function () {
     ).toBigInt();
 
     const transactionHash = await owner.sendTransaction({
-      to: xlaRSCFeeWaterfall.address,
+      to: rscFeeWaterfall.address,
       value: ethers.utils.parseEther("50"),
     });
 
@@ -657,16 +657,16 @@ describe("XLA RSC Waterfall tests", function () {
     );
 
     await baseToken.transfer(
-      xlaRSCFeeWaterfall.address,
+      rscFeeWaterfall.address,
       ethers.utils.parseEther("1000000")
     );
 
-    await xlaRSCFeeWaterfall.redistributeToken(baseToken.address);
+    await rscFeeWaterfall.redistributeToken(baseToken.address);
 
     expect(await baseToken.balanceOf(platformWallet)).to.be.equal(
       ethers.utils.parseEther("500000")
     );
-    expect(await baseToken.balanceOf(xlaRSCFeeWaterfall.address)).to.be.equal(
+    expect(await baseToken.balanceOf(rscFeeWaterfall.address)).to.be.equal(
       ethers.utils.parseEther("150000")
     );
     expect(await baseToken.balanceOf(addr1.address)).to.be.equal(
@@ -675,12 +675,12 @@ describe("XLA RSC Waterfall tests", function () {
   });
 
   it("Should work with creation ID correctly", async () => {
-    const XLARSCWaterfallCreationIdFactory = await ethers.getContractFactory(
-      "XLARSCWaterfallFactory"
+    const RSCWaterfallCreationIdFactory = await ethers.getContractFactory(
+      "RSCWaterfallFactory"
     );
-    const xlaRSCWaterfallCreationIdFactory =
-      await XLARSCWaterfallCreationIdFactory.deploy();
-    await xlaRSCWaterfallCreationIdFactory.deployed();
+    const rscWaterfallCreationIdFactory =
+      await RSCWaterfallCreationIdFactory.deploy();
+    await rscWaterfallCreationIdFactory.deployed();
 
     const EthPriceFeedMock = await ethers.getContractFactory(
       "EthPriceFeedMock"
@@ -688,7 +688,7 @@ describe("XLA RSC Waterfall tests", function () {
     const ethPriceFeedMock = await EthPriceFeedMock.deploy();
     await ethPriceFeedMock.deployed();
 
-    await xlaRSCWaterfallCreationIdFactory.createRSCWaterfall({
+    await rscWaterfallCreationIdFactory.createRSCWaterfall({
       controller: owner.address,
       distributors: [owner.address],
       immutableController: false,
@@ -703,7 +703,7 @@ describe("XLA RSC Waterfall tests", function () {
     });
 
     await expect(
-      xlaRSCWaterfallCreationIdFactory.createRSCWaterfall({
+      rscWaterfallCreationIdFactory.createRSCWaterfall({
         controller: owner.address,
         distributors: [owner.address],
         immutableController: false,
@@ -717,11 +717,11 @@ describe("XLA RSC Waterfall tests", function () {
         creationId: ethers.utils.formatBytes32String("test-creation-id-1"),
       })
     ).to.be.revertedWithCustomError(
-      xlaRSCWaterfallCreationIdFactory,
+      rscWaterfallCreationIdFactory,
       "CreationIdAlreadyProcessed"
     );
 
-    await xlaRSCWaterfallCreationIdFactory.createRSCWaterfall({
+    await rscWaterfallCreationIdFactory.createRSCWaterfall({
       controller: owner.address,
       distributors: [owner.address],
       immutableController: false,

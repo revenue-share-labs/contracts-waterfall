@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "contracts/BaseRSCWaterfall.sol";
@@ -8,7 +8,7 @@ import "contracts/RSCWaterfall.sol";
 import "contracts/RSCWaterfallUsd.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract XLARSCWaterfallFactory is Ownable {
+contract RSCWaterfallFactory is Ownable {
     address payable public immutable contractImplementation;
     address payable public immutable contractImplementationUsd;
 
@@ -85,8 +85,8 @@ contract XLARSCWaterfallFactory is Ownable {
     error CreationIdAlreadyProcessed();
 
     constructor() {
-        contractImplementation = payable(new XLARSCWaterfall());
-        contractImplementationUsd = payable(new XLARSCWaterfallUsd());
+        contractImplementation = payable(new RSCWaterfall());
+        contractImplementationUsd = payable(new RSCWaterfallUsd());
     }
 
     /**
@@ -124,7 +124,7 @@ contract XLARSCWaterfallFactory is Ownable {
                 _data.erc20PriceFeeds
             );
 
-        XLARSCWaterfall(clone).initialize(
+        RSCWaterfall(clone).initialize(
             contractSettings,
             _data.initialRecipients,
             _data.maxCaps,
@@ -182,7 +182,7 @@ contract XLARSCWaterfallFactory is Ownable {
                 _data.erc20PriceFeeds
             );
 
-        XLARSCWaterfallUsd(clone).initialize(
+        RSCWaterfallUsd(clone).initialize(
             contractSettings,
             _data.initialRecipients,
             _data.maxCaps,

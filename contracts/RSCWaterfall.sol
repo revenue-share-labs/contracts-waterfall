@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./BaseRSCWaterfall.sol";
 
-contract XLARSCWaterfall is BaseRSCWaterfall {
+contract RSCWaterfall is BaseRSCWaterfall {
     mapping(address => address) tokenNativeTokenPriceFeeds;
     event TokenPriceFeedSet(address token, address priceFeed);
 

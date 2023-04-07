@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.19;
 
 interface IRecursiveRSC {
     function distributors(address _distributor) external returns (bool);

@@ -1,14 +1,12 @@
-import * as dotenv from "dotenv";
+import "dotenv/config";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-
-dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.9",
+        version: "0.8.19",
         settings: {
           optimizer: {
             enabled: true,
@@ -33,6 +31,12 @@ const config: HardhatUserConfig = {
           ? [process.env.PRIVATE_KEY_MAINNET]
           : [],
     },
+  },
+  paths: {
+    artifacts: "./artifacts",
+    cache: "./cache",
+    sources: "./contracts",
+    tests: "./tests",
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
