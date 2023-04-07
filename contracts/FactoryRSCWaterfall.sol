@@ -8,7 +8,6 @@ import "contracts/RSCWaterfall.sol";
 import "contracts/RSCWaterfallUsd.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-
 contract XLARSCWaterfallFactory is Ownable {
     address payable public immutable contractImplementation;
     address payable public immutable contractImplementationUsd;
@@ -26,7 +25,7 @@ contract XLARSCWaterfallFactory is Ownable {
         bool immutableController;
         bool autoNativeTokenDistribution;
         uint256 minAutoDistributeAmount;
-        address payable [] initialRecipients;
+        address payable[] initialRecipients;
         uint256[] maxCaps;
         uint256[] priorities;
         address[] supportedErc20addresses;
@@ -41,7 +40,7 @@ contract XLARSCWaterfallFactory is Ownable {
         bool autoNativeTokenDistribution;
         address nativeTokenUsdPriceFeed;
         uint256 minAutoDistributeAmount;
-        address payable [] initialRecipients;
+        address payable[] initialRecipients;
         uint256[] maxCaps;
         uint256[] priorities;
         address[] supportedErc20addresses;
@@ -72,10 +71,7 @@ contract XLARSCWaterfallFactory is Ownable {
         bytes32 creationId
     );
 
-    event PlatformFeeChanged(
-        uint256 oldFee,
-        uint256 newFee
-    );
+    event PlatformFeeChanged(uint256 oldFee, uint256 newFee);
 
     event PlatformWalletChanged(
         address payable oldPlatformWallet,
@@ -98,8 +94,9 @@ contract XLARSCWaterfallFactory is Ownable {
      * @param _data Initial data for creating new RSC Waterfall native token contract
      * @return Address of new contract
      */
-    function createRSCWaterfall(RSCCreateData memory _data) external returns(address) {
-
+    function createRSCWaterfall(
+        RSCCreateData memory _data
+    ) external returns (address) {
         // check and register creationId
         bytes32 creationId = _data.creationId;
         if (creationId != bytes32(0)) {
@@ -113,18 +110,19 @@ contract XLARSCWaterfallFactory is Ownable {
 
         address payable clone = payable(Clones.clone(contractImplementation));
 
-        BaseRSCWaterfall.InitContractSetting memory contractSettings = BaseRSCWaterfall.InitContractSetting(
-            msg.sender,
-            _data.distributors,
-            _data.controller,
-            _data.immutableController,
-            _data.autoNativeTokenDistribution,
-            _data.minAutoDistributeAmount,
-            platformFee,
-            address(this),
-            _data.supportedErc20addresses,
-            _data.erc20PriceFeeds
-        );
+        BaseRSCWaterfall.InitContractSetting
+            memory contractSettings = BaseRSCWaterfall.InitContractSetting(
+                msg.sender,
+                _data.distributors,
+                _data.controller,
+                _data.immutableController,
+                _data.autoNativeTokenDistribution,
+                _data.minAutoDistributeAmount,
+                platformFee,
+                address(this),
+                _data.supportedErc20addresses,
+                _data.erc20PriceFeeds
+            );
 
         XLARSCWaterfall(clone).initialize(
             contractSettings,
@@ -152,8 +150,9 @@ contract XLARSCWaterfallFactory is Ownable {
      * @param _data Initial data for creating new RSC Waterfall USD contract
      * @return Address of new contract
      */
-    function createRSCWaterfallUsd(RSCCreateUsdData memory _data) external returns(address) {
-
+    function createRSCWaterfallUsd(
+        RSCCreateUsdData memory _data
+    ) external returns (address) {
         // check and register creationId
         bytes32 creationId = _data.creationId;
         if (creationId != bytes32(0)) {
@@ -165,20 +164,23 @@ contract XLARSCWaterfallFactory is Ownable {
             }
         }
 
-        address payable clone = payable(Clones.clone(contractImplementationUsd));
-
-        BaseRSCWaterfall.InitContractSetting memory contractSettings = BaseRSCWaterfall.InitContractSetting(
-            msg.sender,
-            _data.distributors,
-            _data.controller,
-            _data.immutableController,
-            _data.autoNativeTokenDistribution,
-            _data.minAutoDistributeAmount,
-            platformFee,
-            address(this),
-            _data.supportedErc20addresses,
-            _data.erc20PriceFeeds
+        address payable clone = payable(
+            Clones.clone(contractImplementationUsd)
         );
+
+        BaseRSCWaterfall.InitContractSetting
+            memory contractSettings = BaseRSCWaterfall.InitContractSetting(
+                msg.sender,
+                _data.distributors,
+                _data.controller,
+                _data.immutableController,
+                _data.autoNativeTokenDistribution,
+                _data.minAutoDistributeAmount,
+                platformFee,
+                address(this),
+                _data.supportedErc20addresses,
+                _data.erc20PriceFeeds
+            );
 
         XLARSCWaterfallUsd(clone).initialize(
             contractSettings,
@@ -219,7 +221,9 @@ contract XLARSCWaterfallFactory is Ownable {
      * @dev Only Owner function for setting platform fee
      * @param _platformWallet New native token wallet which will receive fees
      */
-    function setPlatformWallet(address payable _platformWallet) external onlyOwner {
+    function setPlatformWallet(
+        address payable _platformWallet
+    ) external onlyOwner {
         emit PlatformWalletChanged(platformWallet, _platformWallet);
         platformWallet = _platformWallet;
     }

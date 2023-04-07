@@ -6,13 +6,15 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./BaseRSCWaterfall.sol";
 
-
 contract XLARSCWaterfallUsd is BaseRSCWaterfall {
     AggregatorV3Interface internal nativeTokenUsdPriceFeed;
     mapping(address => address) tokenUsdPriceFeeds;
 
     event TokenPriceFeedSet(address token, address priceFeed);
-    event NativeTokenPriceFeedSet(address oldNativeTokenPriceFeed, address newNativeTokenPriceFeed);
+    event NativeTokenPriceFeedSet(
+        address oldNativeTokenPriceFeed,
+        address newNativeTokenPriceFeed
+    );
 
     // Throws when trying to fetch USD price for token without oracle
     error TokenMissingUsdPriceOracle();
@@ -27,7 +29,7 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
      */
     function initialize(
         InitContractSetting memory _settings,
-        address payable [] memory _initialRecipients,
+        address payable[] memory _initialRecipients,
         uint256[] memory _maxCaps,
         uint256[] memory _priorities,
         address _nativeTokenUsdPriceFeed
@@ -36,9 +38,11 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
         controller = _settings.controller;
 
         uint256 distributorsLength = _settings._distributors.length;
-        for (uint256 i = 0; i < distributorsLength;) {
+        for (uint256 i = 0; i < distributorsLength; ) {
             distributors[_settings._distributors[i]] = true;
-            unchecked{i++;}
+            unchecked {
+                i++;
+            }
         }
 
         immutableController = _settings.immutableController;
@@ -46,15 +50,22 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
         minAutoDistributionAmount = _settings.minAutoDistributionAmount;
         factory = IFeeFactory(_settings.factoryAddress);
         platformFee = _settings.platformFee;
-        nativeTokenUsdPriceFeed = AggregatorV3Interface(_nativeTokenUsdPriceFeed);
+        nativeTokenUsdPriceFeed = AggregatorV3Interface(
+            _nativeTokenUsdPriceFeed
+        );
         _transferOwnership(_settings.owner);
         uint256 supportedErc20Length = _settings.supportedErc20addresses.length;
         if (supportedErc20Length != _settings.erc20PriceFeeds.length) {
             revert InconsistentDataLengthError();
         }
-        for (uint256 i = 0; i < supportedErc20Length;) {
-            _setTokenUsdPriceFeed(_settings.supportedErc20addresses[i], _settings.erc20PriceFeeds[i]);
-            unchecked{i++;}
+        for (uint256 i = 0; i < supportedErc20Length; ) {
+            _setTokenUsdPriceFeed(
+                _settings.supportedErc20addresses[i],
+                _settings.erc20PriceFeeds[i]
+            );
+            unchecked {
+                i++;
+            }
         }
 
         // Recipients settings
@@ -66,7 +77,10 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
      * @param _valueToDistribute amount in native token to be distributed
      * @param _recursive When recursive is True we don't charge additional fee
      */
-    function _redistributeNativeToken(uint256 _valueToDistribute, bool _recursive) internal override {
+    function _redistributeNativeToken(
+        uint256 _valueToDistribute,
+        bool _recursive
+    ) internal override {
         if (currentRecipient == address(0)) {
             // When there is not currentRecipient _valueToDistribute stays in the RSC contract
             return;
@@ -74,10 +88,10 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
 
         // if any, subtract platform Fee and send it to platformWallet
         if (platformFee > 0 && !_recursive) {
-            uint256 fee = _valueToDistribute / 10000000 * platformFee;
+            uint256 fee = (_valueToDistribute / 10000000) * platformFee;
             _valueToDistribute -= fee;
             address payable platformWallet = factory.platformWallet();
-            (bool feeSuccess,) = platformWallet.call{value: fee}("");
+            (bool feeSuccess, ) = platformWallet.call{ value: fee }("");
             if (feeSuccess == false) {
                 revert TransferFailedError();
             }
@@ -86,7 +100,9 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
         RecipientData storage recipientData = recipientsData[currentRecipient];
         uint256 remainCap = recipientData.maxCap - recipientData.received;
         uint256 nativeTokenValueToSent = _valueToDistribute;
-        uint256 usdValueToSent = _convertNativeTokenToUsd(nativeTokenValueToSent);
+        uint256 usdValueToSent = _convertNativeTokenToUsd(
+            nativeTokenValueToSent
+        );
 
         // Check if current recipient was fulfilled
         bool setNewCurrentRecipient = false;
@@ -98,7 +114,9 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
 
         // Send native token to current currentRecipient
         recipientData.received += usdValueToSent;
-        (bool success,) = payable(currentRecipient).call{value: nativeTokenValueToSent}("");
+        (bool success, ) = payable(currentRecipient).call{
+            value: nativeTokenValueToSent
+        }("");
         if (success == false) {
             revert TransferFailedError();
         }
@@ -119,7 +137,10 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
      * @param _token address of token to be distributed
      * @param _recursive When recursive is True we don't charge additional fee
      */
-    function _redistributeToken(address _token, bool _recursive) internal override {
+    function _redistributeToken(
+        address _token,
+        bool _recursive
+    ) internal override {
         if (currentRecipient == address(0)) {
             // When there is not currentRecipient we cannot distribute token
             return;
@@ -136,7 +157,7 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
 
         // if any subtract platform Fee and send it to platformWallet
         if (platformFee > 0 && !_recursive) {
-            uint256 fee = tokenValueToSent / 10000000 * platformFee;
+            uint256 fee = (tokenValueToSent / 10000000) * platformFee;
             tokenValueToSent -= fee;
             address payable platformWallet = factory.platformWallet();
             erc20Token.transfer(platformWallet, fee);
@@ -174,7 +195,9 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
      * @notice Internal function to convert native token value to USD value
      * @param _nativeTokenValue value of native token to be converted
      */
-    function _convertNativeTokenToUsd(uint256 _nativeTokenValue) internal view returns (uint256) {
+    function _convertNativeTokenToUsd(
+        uint256 _nativeTokenValue
+    ) internal view returns (uint256) {
         return (_getNativeTokenUsdPrice() * _nativeTokenValue) / 1e18;
     }
 
@@ -182,8 +205,10 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
      * @notice Internal function to convert USD value to native token value
      * @param _usdValue value of usd to be converted
      */
-    function _convertUsdToNativeToken(uint256 _usdValue) internal view returns (uint256) {
-        return (_usdValue * 1e25 / _getNativeTokenUsdPrice() * 1e25) / 1e32;
+    function _convertUsdToNativeToken(
+        uint256 _usdValue
+    ) internal view returns (uint256) {
+        return (((_usdValue * 1e25) / _getNativeTokenUsdPrice()) * 1e25) / 1e32;
     }
 
     /**
@@ -191,7 +216,10 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
      * @param _token address of the token to be converted
      * @param _tokenValue amount of tokens to be converted
      */
-    function _convertTokenToUsd(address _token, uint256 _tokenValue) internal view returns (uint256) {
+    function _convertTokenToUsd(
+        address _token,
+        uint256 _tokenValue
+    ) internal view returns (uint256) {
         return (_getTokenUsdPrice(_token) * _tokenValue) / 1e18;
     }
 
@@ -200,15 +228,18 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
      * @param _token address of the token to be converted
      * @param _usdValue usd value to be converted
      */
-    function _convertUsdToToken(address _token, uint256 _usdValue) internal view returns (uint256) {
-        return (_usdValue * 1e25 / _getTokenUsdPrice(_token) * 1e25) / 1e32;
+    function _convertUsdToToken(
+        address _token,
+        uint256 _usdValue
+    ) internal view returns (uint256) {
+        return (((_usdValue * 1e25) / _getTokenUsdPrice(_token)) * 1e25) / 1e32;
     }
 
     /**
      * @notice internal function that returns native token/usd price from external oracle
      */
     function _getNativeTokenUsdPrice() private view returns (uint256) {
-        (,int256 price,,,) = nativeTokenUsdPriceFeed.latestRoundData();
+        (, int256 price, , , ) = nativeTokenUsdPriceFeed.latestRoundData();
         return uint256(price * 1e10);
     }
 
@@ -221,8 +252,10 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
         if (tokenOracleAddress == address(0)) {
             revert TokenMissingUsdPriceOracle();
         }
-        AggregatorV3Interface tokenUsdPriceFeed = AggregatorV3Interface(tokenOracleAddress);
-        (,int256 price,,,) = tokenUsdPriceFeed.latestRoundData();
+        AggregatorV3Interface tokenUsdPriceFeed = AggregatorV3Interface(
+            tokenOracleAddress
+        );
+        (, int256 price, , , ) = tokenUsdPriceFeed.latestRoundData();
         return uint256(price * 1e10);
     }
 
@@ -231,16 +264,23 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
      * @param _token address of token
      * @param _priceFeed address of USD price feed for given token
      */
-    function _setTokenUsdPriceFeed(address _token, address _priceFeed) internal {
+    function _setTokenUsdPriceFeed(
+        address _token,
+        address _priceFeed
+    ) internal {
         tokenUsdPriceFeeds[_token] = _priceFeed;
         emit TokenPriceFeedSet(_token, _priceFeed);
     }
+
     /**
      * @notice External function for setting price feed oracle for token
      * @param _token address of token
      * @param _priceFeed address of USD price feed for given token
      */
-    function setTokenUsdPriceFeed(address _token, address _priceFeed) external onlyOwner {
+    function setTokenUsdPriceFeed(
+        address _token,
+        address _priceFeed
+    ) external onlyOwner {
         _setTokenUsdPriceFeed(_token, _priceFeed);
     }
 
@@ -249,7 +289,10 @@ contract XLARSCWaterfallUsd is BaseRSCWaterfall {
      * @param _priceFeed address of USD price feed for native token
      */
     function setNativeTokenPriceFeed(address _priceFeed) external onlyOwner {
-        emit NativeTokenPriceFeedSet(address(nativeTokenUsdPriceFeed), _priceFeed);
+        emit NativeTokenPriceFeedSet(
+            address(nativeTokenUsdPriceFeed),
+            _priceFeed
+        );
         nativeTokenUsdPriceFeed = AggregatorV3Interface(_priceFeed);
     }
 }
