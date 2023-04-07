@@ -5,9 +5,12 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./BaseRSCWaterfall.sol";
 
 contract RSCWaterfallUsd is BaseRSCWaterfall {
+    using SafeERC20 for IERC20;
+
     AggregatorV3Interface internal nativeTokenUsdPriceFeed;
     mapping(address => address) tokenUsdPriceFeeds;
 
@@ -161,7 +164,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
             uint256 fee = (tokenValueToSent / 10000000) * platformFee;
             tokenValueToSent -= fee;
             address payable platformWallet = factory.platformWallet();
-            erc20Token.transfer(platformWallet, fee);
+            erc20Token.safeTransfer(platformWallet, fee);
         }
 
         uint256 remainCap = recipientData.maxCap - recipientData.received;
@@ -177,7 +180,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
 
         // Transfer token to currentRecipient
         recipientData.received += usdValueToSent;
-        erc20Token.transfer(currentRecipient, tokenValueToSent);
+        erc20Token.safeTransfer(currentRecipient, tokenValueToSent);
         _recursiveERC20Distribution(currentRecipient, _token);
 
         // Set new current recipient if currentRecipient was fulfilled
