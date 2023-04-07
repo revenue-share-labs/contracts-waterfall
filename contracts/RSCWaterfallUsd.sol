@@ -8,6 +8,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./BaseRSCWaterfall.sol";
 
+// Throws when trying to fetch USD price for token without oracle
+error TokenMissingUsdPriceOracle();
+
 contract RSCWaterfallUsd is BaseRSCWaterfall {
     using SafeERC20 for IERC20;
 
@@ -19,9 +22,6 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
         address oldNativeTokenPriceFeed,
         address newNativeTokenPriceFeed
     );
-
-    // Throws when trying to fetch USD price for token without oracle
-    error TokenMissingUsdPriceOracle();
 
     /**
      * @dev Constructor function, can be called only once
@@ -179,9 +179,9 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
         }
 
         // Transfer token to currentRecipient
-        recipientData.received += usdValueToSent;
         erc20Token.safeTransfer(currentRecipient, tokenValueToSent);
         _recursiveERC20Distribution(currentRecipient, _token);
+        recipientData.received += usdValueToSent;
 
         // Set new current recipient if currentRecipient was fulfilled
         if (setNewCurrentRecipient) {

@@ -7,6 +7,36 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./interfaces/IFeeFactory.sol";
 import "./interfaces/IRecursiveRSC.sol";
 
+// Throw when if sender is not distributor
+error OnlyDistributorError();
+
+// Throw when sender is not controller
+error OnlyControllerError();
+
+// Throw when transaction fails
+error TransferFailedError();
+
+// Throw when submitted recipient with address(0)
+error NullAddressRecipientError();
+
+// Throw if recipient which is being added is current recipient
+error RecipientIsCurrentRecipientError();
+
+// Throw when arrays are submit without same length
+error InconsistentDataLengthError();
+
+// Throw when distributor address is same as submit one
+error DistributorAlreadyConfiguredError();
+
+// Throw when distributor address is same as submit one
+error ControllerAlreadyConfiguredError();
+
+// Throw when change is triggered for immutable controller
+error ImmutableControllerError();
+
+// Throw if recipient is already in the recipients pool
+error RecipientAlreadyAddedError();
+
 abstract contract BaseRSCWaterfall is OwnableUpgradeable {
     mapping(address => bool) public distributors;
     address public controller;
@@ -49,36 +79,6 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
     event DistributorChanged(address distributor, bool isDistributor);
     event ControllerChanged(address oldController, address newController);
     event CurrentRecipientChanged(address oldRecipient, address newRecipient);
-
-    // Throw when if sender is not distributor
-    error OnlyDistributorError();
-
-    // Throw when sender is not controller
-    error OnlyControllerError();
-
-    // Throw when transaction fails
-    error TransferFailedError();
-
-    // Throw when submitted recipient with address(0)
-    error NullAddressRecipientError();
-
-    // Throw if recipient which is being added is current recipient
-    error RecipientIsCurrentRecipientError();
-
-    // Throw when arrays are submit without same length
-    error InconsistentDataLengthError();
-
-    // Throw when distributor address is same as submit one
-    error DistributorAlreadyConfiguredError();
-
-    // Throw when distributor address is same as submit one
-    error ControllerAlreadyConfiguredError();
-
-    // Throw when change is triggered for immutable controller
-    error ImmutableControllerError();
-
-    // Throw if recipient is already in the recipients pool
-    error RecipientAlreadyAddedError();
 
     /**
      * @dev Throws if sender is not distributor

@@ -8,14 +8,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./BaseRSCWaterfall.sol";
 
+// Throws when trying to fetch native token price for token without oracle
+error TokenMissingNativeTokenPriceOracle();
+
 contract RSCWaterfall is BaseRSCWaterfall {
     using SafeERC20 for IERC20;
 
     mapping(address => address) tokenNativeTokenPriceFeeds;
     event TokenPriceFeedSet(address token, address priceFeed);
-
-    // Throws when trying to fetch native token price for token without oracle
-    error TokenMissingNativeTokenPriceOracle();
 
     /**
      * @dev Constructor function, can be called only once
