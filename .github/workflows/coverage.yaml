@@ -1,0 +1,30 @@
+name: Coverage
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      
+      - name: Install dependencies
+        run: npm i
+
+      - name: Generate TypeChain artifacts
+        run: npx hardhat typechain --config hardhat-ci.config.ts
+        
+      - name: Run coverage
+        run: npx hardhat coverage --config hardhat-ci.config.ts

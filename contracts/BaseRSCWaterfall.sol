@@ -1,12 +1,41 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./interfaces/IFeeFactory.sol";
 import "./interfaces/IRecursiveRSC.sol";
 
+// Throw when if sender is not distributor
+error OnlyDistributorError();
+
+// Throw when sender is not controller
+error OnlyControllerError();
+
+// Throw when transaction fails
+error TransferFailedError();
+
+// Throw when submitted recipient with address(0)
+error NullAddressRecipientError();
+
+// Throw if recipient which is being added is current recipient
+error RecipientIsCurrentRecipientError();
+
+// Throw when arrays are submit without same length
+error InconsistentDataLengthError();
+
+// Throw when distributor address is same as submit one
+error DistributorAlreadyConfiguredError();
+
+// Throw when distributor address is same as submit one
+error ControllerAlreadyConfiguredError();
+
+// Throw when change is triggered for immutable controller
+error ImmutableControllerError();
+
+// Throw if recipient is already in the recipients pool
+error RecipientAlreadyAddedError();
 
 abstract contract BaseRSCWaterfall is OwnableUpgradeable {
     mapping(address => bool) public distributors;
@@ -20,13 +49,13 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
     address payable public currentRecipient;
 
     struct RecipientData {
-        uint256 received;  // Either USD for RSCWaterfallUsd or native token for RSCWaterfall
+        uint256 received; // Either USD for RSCWaterfallUsd or native token for RSCWaterfall
         uint256 maxCap;
         uint256 priority;
     }
 
     mapping(address => RecipientData) public recipientsData;
-    address payable [] public recipients;
+    address payable[] public recipients;
 
     struct InitContractSetting {
         address owner;
@@ -41,46 +70,20 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
         address[] erc20PriceFeeds;
     }
 
-    event SetRecipients(address payable [] recipients, uint256[] maxCaps, uint256[] priorities);
+    event SetRecipients(
+        address payable[] recipients,
+        uint256[] maxCaps,
+        uint256[] priorities
+    );
     event DistributeToken(address token, uint256 amount);
     event DistributorChanged(address distributor, bool isDistributor);
     event ControllerChanged(address oldController, address newController);
     event CurrentRecipientChanged(address oldRecipient, address newRecipient);
 
-    // Throw when if sender is not distributor
-    error OnlyDistributorError();
-
-    // Throw when sender is not controller
-    error OnlyControllerError();
-
-    // Throw when transaction fails
-    error TransferFailedError();
-
-    // Throw when submitted recipient with address(0)
-    error NullAddressRecipientError();
-
-    // Throw if recipient which is being added is current recipient
-    error RecipientIsCurrentRecipientError();
-
-    // Throw when arrays are submit without same length
-    error InconsistentDataLengthError();
-
-    // Throw when distributor address is same as submit one
-    error DistributorAlreadyConfiguredError();
-
-    // Throw when distributor address is same as submit one
-    error ControllerAlreadyConfiguredError();
-
-    // Throw when change is triggered for immutable controller
-    error ImmutableControllerError();
-
-    // Throw if recipient is already in the recipients pool
-    error RecipientAlreadyAddedError();
-
     /**
      * @dev Throws if sender is not distributor
      */
-    modifier onlyDistributor {
+    modifier onlyDistributor() {
         if (distributors[msg.sender] == false) {
             revert OnlyDistributorError();
         }
@@ -90,7 +93,7 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
     /**
      * @dev Checks whether sender is controller
      */
-    modifier onlyController {
+    modifier onlyController() {
         if (msg.sender != controller) {
             revert OnlyControllerError();
         }
@@ -101,7 +104,10 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
         // Check whether automatic native token distribution is enabled
         // and that contractBalance is more than automatic distribution trash hold
         uint256 contractBalance = address(this).balance;
-        if (autoNativeTokenDistribution && contractBalance >= minAutoDistributionAmount) {
+        if (
+            autoNativeTokenDistribution &&
+            contractBalance >= minAutoDistributionAmount
+        ) {
             _redistributeNativeToken(contractBalance, false);
         }
     }
@@ -110,7 +116,10 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
         // Check whether automatic native token distribution is enabled
         // and that contractBalance + msg.value is more than automatic distribution trash hold
         uint256 contractBalance = address(this).balance;
-        if (autoNativeTokenDistribution && contractBalance >= minAutoDistributionAmount) {
+        if (
+            autoNativeTokenDistribution &&
+            contractBalance >= minAutoDistributionAmount
+        ) {
             _redistributeNativeToken(contractBalance, false);
         }
     }
@@ -120,8 +129,10 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
      * @param _valueToDistribute native token amount to be distribute
      * @param _recursive When recursive is True we don't charge additional fee
      */
-    function _redistributeNativeToken(uint256 _valueToDistribute, bool _recursive) internal virtual {}
-
+    function _redistributeNativeToken(
+        uint256 _valueToDistribute,
+        bool _recursive
+    ) internal virtual {}
 
     /**
      * @notice External function to redistribute native token based on waterfall rules
@@ -138,7 +149,7 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
     /**
      * @notice External function to return number of recipients
      */
-    function numberOfRecipients() external view returns(uint256) {
+    function numberOfRecipients() external view returns (uint256) {
         return recipients.length;
     }
 
@@ -147,9 +158,12 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
      * @param _token address of token to be distributed
      * @param _recursive When recursive is True we don't charge additional fee
      */
-    function _redistributeToken(address _token, bool _recursive) internal virtual {}
+    function _redistributeToken(
+        address _token,
+        bool _recursive
+    ) internal virtual {}
 
-     /**
+    /**
      * @notice External function to redistribute ERC20 token based on waterfall rules
      * @param _token address of token to be distributed
      */
@@ -168,25 +182,31 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
         uint256 recipientsLength = recipients.length;
 
         // Search for highest priority address
-        for (uint256 i = 0; i < recipientsLength;) {
+        for (uint256 i = 0; i < recipientsLength; ) {
             address recipient = recipients[i];
             RecipientData memory recipientData = recipientsData[recipient];
 
-            if (recipientData.priority > highestPriority || highestPriority == 0) {
+            if (
+                recipientData.priority > highestPriority || highestPriority == 0
+            ) {
                 highestPriority = recipientData.priority;
                 highestPriorityAddress = recipient;
             }
-            unchecked{i++;}
+            unchecked {
+                i++;
+            }
         }
 
         // Remove highestPriorityAddress from the recipients list
-        for (uint256 i = 0; i < recipientsLength;) {
+        for (uint256 i = 0; i < recipientsLength; ) {
             if (recipients[i] == highestPriorityAddress) {
-                recipients[i] = recipients[recipientsLength-1];
+                recipients[i] = recipients[recipientsLength - 1];
                 recipients.pop();
                 break;
             }
-            unchecked{i++;}
+            unchecked {
+                i++;
+            }
         }
 
         // remove currentRecipient data
@@ -225,7 +245,7 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
      * @param _priorities List of recipients priorities
      */
     function _setRecipients(
-        address payable [] memory _newRecipients,
+        address payable[] memory _newRecipients,
         uint256[] memory _maxCaps,
         uint256[] memory _priorities
     ) internal {
@@ -240,9 +260,11 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
 
         _removeAll();
 
-        for (uint256 i = 0; i < newRecipientsLength;) {
+        for (uint256 i = 0; i < newRecipientsLength; ) {
             _addRecipient(_newRecipients[i], _maxCaps[i], _priorities[i]);
-            unchecked{i++;}
+            unchecked {
+                i++;
+            }
         }
 
         // If there is not any currentRecipient choose one
@@ -260,7 +282,7 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
      * @param _priorities Priority when recipient is going to be current recipient
      */
     function setRecipients(
-        address payable [] memory _newRecipients,
+        address payable[] memory _newRecipients,
         uint256[] memory _maxCaps,
         uint256[] memory _priorities
     ) public onlyController {
@@ -277,10 +299,12 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
             return;
         }
 
-        for (uint256 i = 0; i < recipientsLength;) {
+        for (uint256 i = 0; i < recipientsLength; ) {
             address recipient = recipients[i];
             delete recipientsData[recipient];
-            unchecked{i++;}
+            unchecked {
+                i++;
+            }
         }
         delete recipients;
     }
@@ -290,7 +314,10 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
      * @param _distributor address of new distributor
      * @param _isDistributor bool indicating whether address is / isn't distributor
      */
-    function setDistributor(address _distributor, bool _isDistributor) external onlyOwner {
+    function setDistributor(
+        address _distributor,
+        bool _isDistributor
+    ) external onlyOwner {
         emit DistributorChanged(_distributor, _isDistributor);
         distributors[_distributor] = _isDistributor;
     }
@@ -315,20 +342,29 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
      * @param _recipient Address of recipient to recursively distribute
      * @param _token token to be distributed
      */
-    function _recursiveERC20Distribution(address _recipient, address _token) internal {
+    function _recursiveERC20Distribution(
+        address _recipient,
+        address _token
+    ) internal {
         // Handle Recursive token distribution
         IRecursiveRSC recursiveRecipient = IRecursiveRSC(_recipient);
 
         // Wallets have size 0 and contracts > 0. This way we can distinguish them.
         uint256 recipientSize;
-        assembly {recipientSize := extcodesize(_recipient)}
+        assembly {
+            recipientSize := extcodesize(_recipient)
+        }
         if (recipientSize > 0) {
             // Validate this contract is distributor in child recipient
-            try recursiveRecipient.distributors(address(this)) returns(bool isBranchDistributor) {
+            try recursiveRecipient.distributors(address(this)) returns (
+                bool isBranchDistributor
+            ) {
                 if (isBranchDistributor) {
                     recursiveRecipient.redistributeToken(_token);
                 }
-            } catch {return;}  // unable to recursively distribute
+            } catch {
+                return;
+            } // unable to recursively distribute
         }
     }
 
@@ -342,23 +378,32 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
 
         // Wallets have size 0 and contracts > 0. This way we can distinguish them.
         uint256 recipientSize;
-        assembly {recipientSize := extcodesize(_recipient)}
+        assembly {
+            recipientSize := extcodesize(_recipient)
+        }
         if (recipientSize > 0) {
-
             // Check whether child recipient have autoNativeTokenDistribution set to true,
             // if yes tokens will be recursively distributed automatically
-            try recursiveRecipient.autoNativeTokenDistribution() returns(bool childAutoNativeTokenDistribution) {
+            try recursiveRecipient.autoNativeTokenDistribution() returns (
+                bool childAutoNativeTokenDistribution
+            ) {
                 if (childAutoNativeTokenDistribution == true) {
                     return;
                 }
-            } catch {return;}
+            } catch {
+                return;
+            }
 
             // Validate this contract is distributor in child recipient
-            try recursiveRecipient.distributors(address(this)) returns(bool isBranchDistributor) {
+            try recursiveRecipient.distributors(address(this)) returns (
+                bool isBranchDistributor
+            ) {
                 if (isBranchDistributor) {
                     recursiveRecipient.redistributeNativeToken();
                 }
-            } catch {return;}  // unable to recursively distribute
+            } catch {
+                return;
+            } // unable to recursively distribute
         }
     }
 }

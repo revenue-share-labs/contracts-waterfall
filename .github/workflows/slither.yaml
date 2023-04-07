@@ -1,0 +1,54 @@
+name: Static Analysis
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i
+      - run: npx hardhat compile
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          sudo snap install solc
+          python -m pip install --upgrade pip
+          pip install slither-analyzer==0.9.3 solc-select==1.0.2
+
+      - name: Summary of static ananlysis
+        run: |
+          slither . --print human-summary
+
+      - name: Contract summary of static ananlysis
+        run: |
+          slither . --print contract-summary
+
+      - name: Function summary
+        run: |
+          slither . --print function-summary
+
+      - name: Inheritance
+        run: |
+          slither . --print inheritance
+
+      - name: Data dependency
+        run: |
+          slither . --print data-dependency
