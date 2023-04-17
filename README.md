@@ -18,7 +18,6 @@ X.LA RSC Waterfall factory deployed to:  0x10175899cE9029e5687cC875A283D1CFEc2D2
 
 #### production - polygon
 
-
 ## Running locally
 
 This repository is standard hardhat repository. Use the following commands to test / deploy RSC Prepayment Factory locally.
