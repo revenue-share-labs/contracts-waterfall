@@ -94,9 +94,7 @@ contract RSCWaterfallFactory is Ownable {
      * @param _data Initial data for creating new RSC Waterfall native token contract
      * @return Address of new contract
      */
-    function createRSCWaterfall(
-        RSCCreateData memory _data
-    ) external returns (address) {
+    function createRSCWaterfall(RSCCreateData memory _data) external returns (address) {
         // check and register creationId
         bytes32 creationId = _data.creationId;
         if (creationId != bytes32(0)) {
@@ -110,8 +108,8 @@ contract RSCWaterfallFactory is Ownable {
 
         address payable clone = payable(Clones.clone(contractImplementation));
 
-        BaseRSCWaterfall.InitContractSetting
-            memory contractSettings = BaseRSCWaterfall.InitContractSetting(
+        BaseRSCWaterfall.InitContractSetting memory contractSettings = BaseRSCWaterfall
+            .InitContractSetting(
                 msg.sender,
                 _data.distributors,
                 _data.controller,
@@ -164,12 +162,10 @@ contract RSCWaterfallFactory is Ownable {
             }
         }
 
-        address payable clone = payable(
-            Clones.clone(contractImplementationUsd)
-        );
+        address payable clone = payable(Clones.clone(contractImplementationUsd));
 
-        BaseRSCWaterfall.InitContractSetting
-            memory contractSettings = BaseRSCWaterfall.InitContractSetting(
+        BaseRSCWaterfall.InitContractSetting memory contractSettings = BaseRSCWaterfall
+            .InitContractSetting(
                 msg.sender,
                 _data.distributors,
                 _data.controller,
@@ -221,9 +217,7 @@ contract RSCWaterfallFactory is Ownable {
      * @dev Only Owner function for setting platform fee
      * @param _platformWallet New native token wallet which will receive fees
      */
-    function setPlatformWallet(
-        address payable _platformWallet
-    ) external onlyOwner {
+    function setPlatformWallet(address payable _platformWallet) external onlyOwner {
         emit PlatformWalletChanged(platformWallet, _platformWallet);
         platformWallet = _platformWallet;
     }

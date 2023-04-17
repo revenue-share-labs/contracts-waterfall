@@ -1,4 +1,4 @@
-name: Run Hardhat Coverage
+name: Run Prettier
 
 on:
   - push
@@ -23,8 +23,5 @@ jobs:
       - name: Install dependencies
         run: npm i
 
-      - name: Generate TypeChain artifacts
-        run: npx hardhat typechain --config hardhat-ci.config.ts
-
-      - name: Run coverage
-        run: npx hardhat coverage --config hardhat-ci.config.ts
+      - name: Run prettier
+        run: npx prettier --check .

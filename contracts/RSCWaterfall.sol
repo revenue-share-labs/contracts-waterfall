@@ -128,10 +128,7 @@ contract RSCWaterfall is BaseRSCWaterfall {
      * @param _token address of token to be distributed
      * @param _recursive When recursive is True we don't charge additional fee
      */
-    function _redistributeToken(
-        address _token,
-        bool _recursive
-    ) internal override {
+    function _redistributeToken(address _token, bool _recursive) internal override {
         if (currentRecipient == address(0)) {
             // When there is not currentRecipient we cannot distribute token
             return;
@@ -164,10 +161,7 @@ contract RSCWaterfall is BaseRSCWaterfall {
         bool setNewCurrentRecipient = false;
         if (nativeTokenValueToSent >= remainCap) {
             nativeTokenValueToSent = remainCap;
-            tokenValueToSent = _convertNativeTokenToToken(
-                _token,
-                nativeTokenValueToSent
-            );
+            tokenValueToSent = _convertNativeTokenToToken(_token, nativeTokenValueToSent);
             setNewCurrentRecipient = true;
         }
         recipientData.received += nativeTokenValueToSent;
@@ -190,9 +184,7 @@ contract RSCWaterfall is BaseRSCWaterfall {
      * @notice internal function that returns erc20/native token price from external oracle
      * @param _token Address of the token
      */
-    function _getTokenNativeTokenPrice(
-        address _token
-    ) private view returns (uint256) {
+    function _getTokenNativeTokenPrice(address _token) private view returns (uint256) {
         address tokenOracleAddress = tokenNativeTokenPriceFeeds[_token];
         if (tokenOracleAddress == address(0)) {
             revert TokenMissingNativeTokenPriceOracle();
@@ -226,8 +218,8 @@ contract RSCWaterfall is BaseRSCWaterfall {
         uint256 _nativeTokenValue
     ) internal view returns (uint256) {
         return
-            (((_nativeTokenValue * 1e25) / _getTokenNativeTokenPrice(_token)) *
-                1e25) / 1e32;
+            (((_nativeTokenValue * 1e25) / _getTokenNativeTokenPrice(_token)) * 1e25) /
+            1e32;
     }
 
     /**
@@ -247,10 +239,7 @@ contract RSCWaterfall is BaseRSCWaterfall {
      * @param _token address of token
      * @param _priceFeed address of native token price feed for given token
      */
-    function _setTokenNativeTokenPriceFeed(
-        address _token,
-        address _priceFeed
-    ) internal {
+    function _setTokenNativeTokenPriceFeed(address _token, address _priceFeed) internal {
         tokenNativeTokenPriceFeeds[_token] = _priceFeed;
         emit TokenPriceFeedSet(_token, _priceFeed);
     }

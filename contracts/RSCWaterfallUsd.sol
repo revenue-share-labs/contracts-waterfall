@@ -54,9 +54,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
         minAutoDistributionAmount = _settings.minAutoDistributionAmount;
         factory = IFeeFactory(_settings.factoryAddress);
         platformFee = _settings.platformFee;
-        nativeTokenUsdPriceFeed = AggregatorV3Interface(
-            _nativeTokenUsdPriceFeed
-        );
+        nativeTokenUsdPriceFeed = AggregatorV3Interface(_nativeTokenUsdPriceFeed);
         _transferOwnership(_settings.owner);
         uint256 supportedErc20Length = _settings.supportedErc20addresses.length;
         if (supportedErc20Length != _settings.erc20PriceFeeds.length) {
@@ -104,9 +102,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
         RecipientData storage recipientData = recipientsData[currentRecipient];
         uint256 remainCap = recipientData.maxCap - recipientData.received;
         uint256 nativeTokenValueToSent = _valueToDistribute;
-        uint256 usdValueToSent = _convertNativeTokenToUsd(
-            nativeTokenValueToSent
-        );
+        uint256 usdValueToSent = _convertNativeTokenToUsd(nativeTokenValueToSent);
 
         // Check if current recipient was fulfilled
         bool setNewCurrentRecipient = false;
@@ -141,10 +137,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
      * @param _token address of token to be distributed
      * @param _recursive When recursive is True we don't charge additional fee
      */
-    function _redistributeToken(
-        address _token,
-        bool _recursive
-    ) internal override {
+    function _redistributeToken(address _token, bool _recursive) internal override {
         if (currentRecipient == address(0)) {
             // When there is not currentRecipient we cannot distribute token
             return;
@@ -209,9 +202,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
      * @notice Internal function to convert USD value to native token value
      * @param _usdValue value of usd to be converted
      */
-    function _convertUsdToNativeToken(
-        uint256 _usdValue
-    ) internal view returns (uint256) {
+    function _convertUsdToNativeToken(uint256 _usdValue) internal view returns (uint256) {
         return (((_usdValue * 1e25) / _getNativeTokenUsdPrice()) * 1e25) / 1e32;
     }
 
@@ -268,10 +259,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
      * @param _token address of token
      * @param _priceFeed address of USD price feed for given token
      */
-    function _setTokenUsdPriceFeed(
-        address _token,
-        address _priceFeed
-    ) internal {
+    function _setTokenUsdPriceFeed(address _token, address _priceFeed) internal {
         tokenUsdPriceFeeds[_token] = _priceFeed;
         emit TokenPriceFeedSet(_token, _priceFeed);
     }
@@ -281,10 +269,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
      * @param _token address of token
      * @param _priceFeed address of USD price feed for given token
      */
-    function setTokenUsdPriceFeed(
-        address _token,
-        address _priceFeed
-    ) external onlyOwner {
+    function setTokenUsdPriceFeed(address _token, address _priceFeed) external onlyOwner {
         _setTokenUsdPriceFeed(_token, _priceFeed);
     }
 
@@ -293,10 +278,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
      * @param _priceFeed address of USD price feed for native token
      */
     function setNativeTokenPriceFeed(address _priceFeed) external onlyOwner {
-        emit NativeTokenPriceFeedSet(
-            address(nativeTokenUsdPriceFeed),
-            _priceFeed
-        );
+        emit NativeTokenPriceFeedSet(address(nativeTokenUsdPriceFeed), _priceFeed);
         nativeTokenUsdPriceFeed = AggregatorV3Interface(_priceFeed);
     }
 }

@@ -26,9 +26,6 @@ error RecipientIsCurrentRecipientError();
 error InconsistentDataLengthError();
 
 // Throw when distributor address is same as submit one
-error DistributorAlreadyConfiguredError();
-
-// Throw when distributor address is same as submit one
 error ControllerAlreadyConfiguredError();
 
 // Throw when change is triggered for immutable controller
@@ -104,10 +101,7 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
         // Check whether automatic native token distribution is enabled
         // and that contractBalance is more than automatic distribution trash hold
         uint256 contractBalance = address(this).balance;
-        if (
-            autoNativeTokenDistribution &&
-            contractBalance >= minAutoDistributionAmount
-        ) {
+        if (autoNativeTokenDistribution && contractBalance >= minAutoDistributionAmount) {
             _redistributeNativeToken(contractBalance, false);
         }
     }
@@ -116,10 +110,7 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
         // Check whether automatic native token distribution is enabled
         // and that contractBalance + msg.value is more than automatic distribution trash hold
         uint256 contractBalance = address(this).balance;
-        if (
-            autoNativeTokenDistribution &&
-            contractBalance >= minAutoDistributionAmount
-        ) {
+        if (autoNativeTokenDistribution && contractBalance >= minAutoDistributionAmount) {
             _redistributeNativeToken(contractBalance, false);
         }
     }
@@ -158,10 +149,7 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
      * @param _token address of token to be distributed
      * @param _recursive When recursive is True we don't charge additional fee
      */
-    function _redistributeToken(
-        address _token,
-        bool _recursive
-    ) internal virtual {}
+    function _redistributeToken(address _token, bool _recursive) internal virtual {}
 
     /**
      * @notice External function to redistribute ERC20 token based on waterfall rules
@@ -186,9 +174,7 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
             address recipient = recipients[i];
             RecipientData memory recipientData = recipientsData[recipient];
 
-            if (
-                recipientData.priority > highestPriority || highestPriority == 0
-            ) {
+            if (recipientData.priority > highestPriority || highestPriority == 0) {
                 highestPriority = recipientData.priority;
                 highestPriorityAddress = recipient;
             }
@@ -342,10 +328,7 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
      * @param _recipient Address of recipient to recursively distribute
      * @param _token token to be distributed
      */
-    function _recursiveERC20Distribution(
-        address _recipient,
-        address _token
-    ) internal {
+    function _recursiveERC20Distribution(address _recipient, address _token) internal {
         // Handle Recursive token distribution
         IRecursiveRSC recursiveRecipient = IRecursiveRSC(_recipient);
 
