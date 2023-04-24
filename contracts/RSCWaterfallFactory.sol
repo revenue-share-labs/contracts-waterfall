@@ -15,10 +15,12 @@ error InvalidFeePercentage();
 error CreationIdAlreadyProcessed();
 
 contract RSCWaterfallFactory is Ownable {
+    uint256 public constant BASIS_POINT = 10000000;
+
     address payable public immutable contractImplementation;
     address payable public immutable contractImplementationUsd;
 
-    uint256 constant version = 1;
+    uint256 public constant VERSION = 1;
     uint256 public platformFee;
     address payable public platformWallet;
 
@@ -117,7 +119,6 @@ contract RSCWaterfallFactory is Ownable {
                 _data.autoNativeTokenDistribution,
                 _data.minAutoDistributeAmount,
                 platformFee,
-                address(this),
                 _data.supportedErc20addresses,
                 _data.erc20PriceFeeds
             );
@@ -133,7 +134,7 @@ contract RSCWaterfallFactory is Ownable {
             clone,
             _data.controller,
             _data.distributors,
-            version,
+            VERSION,
             _data.immutableController,
             _data.autoNativeTokenDistribution,
             _data.minAutoDistributeAmount,
@@ -173,7 +174,6 @@ contract RSCWaterfallFactory is Ownable {
                 _data.autoNativeTokenDistribution,
                 _data.minAutoDistributeAmount,
                 platformFee,
-                address(this),
                 _data.supportedErc20addresses,
                 _data.erc20PriceFeeds
             );
@@ -190,7 +190,7 @@ contract RSCWaterfallFactory is Ownable {
             clone,
             _data.controller,
             _data.distributors,
-            version,
+            VERSION,
             _data.immutableController,
             _data.autoNativeTokenDistribution,
             _data.minAutoDistributeAmount,
@@ -203,10 +203,10 @@ contract RSCWaterfallFactory is Ownable {
 
     /**
      * @dev Only Owner function for setting platform fee
-     * @param _fee Percentage define platform fee 100% == 10000000
+     * @param _fee Percentage define platform fee 100% == BASIS_POINT
      */
     function setPlatformFee(uint256 _fee) external onlyOwner {
-        if (_fee > 10000000) {
+        if (_fee > BASIS_POINT) {
             revert InvalidFeePercentage();
         }
         emit PlatformFeeChanged(platformFee, _fee);

@@ -2,6 +2,7 @@ import "dotenv/config";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-gas-reporter";
+import "hardhat-contract-sizer";
 import "solidity-coverage";
 import "@dlsl/hardhat-markup";
 
@@ -39,6 +40,12 @@ const config: HardhatUserConfig = {
     skipFiles: [],
     noCompile: false,
     verbose: false,
+  },
+  contractSizer: {
+    alphaSort: false,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: false,
   },
 };
 

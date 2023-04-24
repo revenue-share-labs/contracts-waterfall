@@ -35,6 +35,8 @@ error ImmutableControllerError();
 error RecipientAlreadyAddedError();
 
 abstract contract BaseRSCWaterfall is OwnableUpgradeable {
+    uint256 public constant BASIS_POINT = 10000000;
+
     mapping(address => bool) public distributors;
     address public controller;
     bool public immutableController;
@@ -62,7 +64,6 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
         bool autoNativeTokenDistribution;
         uint256 minAutoDistributionAmount;
         uint256 platformFee;
-        address factoryAddress;
         address[] supportedErc20addresses;
         address[] erc20PriceFeeds;
     }
@@ -95,15 +96,6 @@ abstract contract BaseRSCWaterfall is OwnableUpgradeable {
             revert OnlyControllerError();
         }
         _;
-    }
-
-    fallback() external payable {
-        // Check whether automatic native token distribution is enabled
-        // and that contractBalance is more than automatic distribution trash hold
-        uint256 contractBalance = address(this).balance;
-        if (autoNativeTokenDistribution && contractBalance >= minAutoDistributionAmount) {
-            _redistributeNativeToken(contractBalance, false);
-        }
     }
 
     receive() external payable {

@@ -52,7 +52,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
         immutableController = _settings.immutableController;
         autoNativeTokenDistribution = _settings.autoNativeTokenDistribution;
         minAutoDistributionAmount = _settings.minAutoDistributionAmount;
-        factory = IFeeFactory(_settings.factoryAddress);
+        factory = IFeeFactory(msg.sender);
         platformFee = _settings.platformFee;
         nativeTokenUsdPriceFeed = AggregatorV3Interface(_nativeTokenUsdPriceFeed);
         _transferOwnership(_settings.owner);
@@ -90,7 +90,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
 
         // if any, subtract platform Fee and send it to platformWallet
         if (platformFee > 0 && !_recursive) {
-            uint256 fee = (_valueToDistribute / 10000000) * platformFee;
+            uint256 fee = (_valueToDistribute / BASIS_POINT) * platformFee;
             _valueToDistribute -= fee;
             address payable platformWallet = factory.platformWallet();
             (bool feeSuccess, ) = platformWallet.call{ value: fee }("");
@@ -154,7 +154,7 @@ contract RSCWaterfallUsd is BaseRSCWaterfall {
 
         // if any subtract platform Fee and send it to platformWallet
         if (platformFee > 0 && !_recursive) {
-            uint256 fee = (tokenValueToSent / 10000000) * platformFee;
+            uint256 fee = (tokenValueToSent / BASIS_POINT) * platformFee;
             tokenValueToSent -= fee;
             address payable platformWallet = factory.platformWallet();
             erc20Token.safeTransfer(platformWallet, fee);
